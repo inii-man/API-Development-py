@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskHub API Studio - Hari 1: Desain REST, OpenAPI & Autentikasi</title>
+  <link rel="stylesheet" href="/playground/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+<body>
+
+  <!-- Top Application Header -->
+  <header class="app-header">
+    <div class="brand-wrapper">
+      <div class="brand-logo">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>TaskHub API Studio</h1>
+        <p>API Development Training &bull; Hari 1: Desain REST, OpenAPI, dan Autentikasi</p>
+      </div>
+    </div>
+
+    <!-- Quick Persona Switcher -->
+    <div class="header-center">
+      <span class="persona-label">Persona:</span>
+      <button class="persona-btn active" id="btnPersonaAlice" onclick="switchPersona('alice')">
+        <span>Alice</span>
+        <span class="role-tag">Member A</span>
+      </button>
+      <button class="persona-btn" id="btnPersonaBob" onclick="switchPersona('bob')">
+        <span>Bob</span>
+        <span class="role-tag">Member B</span>
+      </button>
+      <button class="persona-btn" id="btnPersonaManager" onclick="switchPersona('manager')">
+        <span>Manager</span>
+        <span class="role-tag">Manager A</span>
+      </button>
+      <button class="persona-btn" id="btnPersonaAdmin" onclick="switchPersona('admin')">
+        <span>Admin</span>
+        <span class="role-tag">ALL</span>
+      </button>
+    </div>
+
+    <!-- Header Right Controls -->
+    <div class="header-right">
+      <div class="server-status-pill" id="serverStatusBadge">
+        <span class="status-dot"></span>
+        <span id="serverStatusText">127.0.0.1:8000 Online</span>
+      </div>
+      <button class="btn-icon-text" onclick="resetDatabase()" title="Kembalikan database ke state awal seed">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Reset DB
+      </button>
+    </div>
+  </header>
+
+  <!-- Navigation Bar -->
+  <nav class="app-nav">
+    <button class="nav-tab-btn active" onclick="showTab('playground')">
+      🚀 REST API Playground
+    </button>
+    <button class="nav-tab-btn" onclick="showTab('reader')">
+      📖 Bahan Ajar (6 Modul)
+    </button>
+    <button class="nav-tab-btn" onclick="showTab('bola-matrix')">
+      🛡️ BOLA & RBAC Simulator
+    </button>
+    <button class="nav-tab-btn" onclick="showTab('concurrency')">
+      ⚡ Optimistic Concurrency Simulator
+    </button>
+    <button class="nav-tab-btn" onclick="showTab('db-inspector')">
+      🗄️ Database Inspector
+    </button>
+    <button class="nav-tab-btn" onclick="showTab('openapi-view')">
+      📜 OpenAPI 3.1.1 Spec
+    </button>
+    <button class="nav-tab-btn" onclick="showTab('quiz')">
+      🎯 Evaluasi 7 Poin Kunci
+    </button>
+  </nav>
+
+  <!-- Main Application Body -->
+  <main class="main-content">
+
+    <!-- TAB 1: REST API PLAYGROUND -->
+    <section id="pane-playground" class="tab-pane active">
+      <div class="playground-grid">
+        
+        <!-- Left: Request Composer -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+              Request Composer
+            </span>
+            <span style="font-size:0.75rem; color:var(--text-dim);">Shortcuts: Cmd/Ctrl + Enter untuk kirim</span>
+          </div>
+
+          <!-- Preset Selector -->
+          <div class="preset-bar">
+            <label for="scenarioPreset">Skenario Lab:</label>
+            <select id="scenarioPreset" class="form-select" onchange="applyPreset(this.value)">
+              <option value="">-- Pilih Skenario Praktik Hari 1 --</option>
+              <option value="login_alice">01. Login Alice (Member Tim A) -> 200 OK</option>
+              <option value="create_task">02. Alice Buat Task -> 201 Created (+ Location Header)</option>
+              <option value="list_tasks">03. Alice List Tasks (Paginasi page=1, pageSize=20) -> 200 OK</option>
+              <option value="detail_task">04. Alice Baca Task Milik Sendiri -> 200 OK</option>
+              <option value="patch_v1">05. Alice PATCH Task (Versi 1 -> Versi 2) -> 200 OK</option>
+              <option value="patch_conflict">06. Alice PATCH Versi 1 Lagi (Optimistic Concurrency) -> 409 Conflict</option>
+              <option value="login_bob">07. Login Bob (Member Tim B) -> 200 OK</option>
+              <option value="bob_bola_attack">08. [BOLA Exploit] Bob Coba Baca Task Alice -> 403 Forbidden</option>
+              <option value="mass_assignment">09. [Mass Assignment] Injeksi owner_id pada Task -> 422 Unprocessable</option>
+              <option value="boundary_page0">10. Boundary Check: page=0 pada List -> 422 Unprocessable</option>
+              <option value="malformed_json">11. Negatif Test: JSON Rusak / Malformed -> 400 Bad Request</option>
+              <option value="delete_task">12. Alice Hapus Task -> 204 No Content</option>
+              <option value="get_deleted">13. Cek Task yang Sudah Dihapus -> 404 Not Found</option>
+            </select>
+          </div>
+
+          <!-- HTTP Request Line -->
+          <div class="request-bar">
+            <select id="reqMethod" class="form-select method-select GET" onchange="updateMethodColor(this)">
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PATCH">PATCH</option>
+              <option value="DELETE">DELETE</option>
+              <option value="OPTIONS">OPTIONS</option>
+            </select>
+            <div class="url-input-wrapper">
+              <input type="text" id="reqPath" class="form-input url-input" value="/api/v1/tasks" placeholder="/api/v1/tasks">
+            </div>
+            <button class="btn-send" id="btnSendRequest" onclick="executeApiRequest()">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              Send
+            </button>
+          </div>
+
+          <!-- Headers Editor -->
+          <div class="headers-editor-box">
+            <div class="section-subtitle">
+              <span>Request Headers</span>
+              <span style="font-size:0.7rem; color:var(--accent-cyan);" id="authStatusIndicator">Token: Alice (u1)</span>
+            </div>
+            <textarea id="reqHeaders" class="code-editor" style="min-height: 85px;" spellcheck="false"></textarea>
+          </div>
+
+          <!-- Body Editor -->
+          <div class="body-editor-box">
+            <div class="section-subtitle">
+              <span>Request Body (JSON)</span>
+              <button class="btn-icon-text" style="padding:0.15rem 0.5rem; font-size:0.7rem;" onclick="formatJsonEditor()">Format JSON</button>
+            </div>
+            <textarea id="reqBody" class="code-editor" style="min-height: 140px;" placeholder="{}" spellcheck="false"></textarea>
+          </div>
+
+          <!-- Quick Scenario Pills -->
+          <div class="scenario-shelf">
+            <span style="font-size:0.75rem; color:var(--text-dim); display:flex; align-items:center;">Shortcut:</span>
+            <span class="scenario-pill" onclick="applyPreset('login_alice')">🔑 Login Alice</span>
+            <span class="scenario-pill" onclick="applyPreset('create_task')">➕ Create Task</span>
+            <span class="scenario-pill" onclick="applyPreset('bob_bola_attack')">🛡️ Uji BOLA (403)</span>
+            <span class="scenario-pill" onclick="applyPreset('patch_conflict')">⚡ Uji Konflik (409)</span>
+            <span class="scenario-pill" onclick="applyPreset('mass_assignment')">🚫 Mass Assignment (422)</span>
+          </div>
+        </div>
+
+        <!-- Right: Response Inspector -->
+        <div class="card response-card">
+          <div class="card-header">
+            <span class="card-title">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Response Inspector
+            </span>
+            <div class="response-meta">
+              <span id="respStatusBadge" class="status-badge s-2xx">200 OK</span>
+              <span id="respLatency">0 ms</span>
+            </div>
+          </div>
+
+          <!-- Response Headers Preview -->
+          <div style="margin-bottom: 0.75rem;">
+            <div class="section-subtitle">Response Headers</div>
+            <div id="respHeaders" style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted); background:rgba(0,0,0,0.3); padding:0.5rem 0.75rem; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); max-height:80px; overflow-y:auto;">
+              content-type: application/json; charset=utf-8
+            </div>
+          </div>
+
+          <!-- Response Body -->
+          <div>
+            <div class="section-subtitle">
+              <span>Response Body</span>
+              <button class="btn-icon-text" style="padding:0.15rem 0.5rem; font-size:0.7rem;" onclick="copyResponseBody()">Copy</button>
+            </div>
+            <pre id="respBodyViewer" class="json-viewer">// Jalankan request atau pilih skenario di samping untuk melihat respons...</pre>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 2: BAHAN AJAR READER -->
+    <section id="pane-reader" class="tab-pane">
+      <div class="reader-container">
+        <!-- Sidebar Navigation -->
+        <aside class="reader-sidebar">
+          <div class="reader-nav-title">Materi Hari 1</div>
+          <ul class="reader-nav-list">
+            <li class="reader-nav-item active" onclick="loadModuleDoc('01')">
+              <span>01.</span> Fondasi REST & Semantik HTTP
+            </li>
+            <li class="reader-nav-item" onclick="loadModuleDoc('02')">
+              <span>02.</span> Desain Kontrak & Validasi
+            </li>
+            <li class="reader-nav-item" onclick="loadModuleDoc('03')">
+              <span>03.</span> OpenAPI 3.1.1 Sebagai Kontrak
+            </li>
+            <li class="reader-nav-item" onclick="loadModuleDoc('04')">
+              <span>04.</span> Autentikasi, RBAC & BOLA
+            </li>
+            <li class="reader-nav-item" onclick="loadModuleDoc('05')">
+              <span>05.</span> Panduan Praktik Lab Hands-on
+            </li>
+            <li class="reader-nav-item" onclick="loadModuleDoc('06')">
+              <span>06.</span> Evaluasi 7 Kunci & Latihan
+            </li>
+          </ul>
+        </aside>
+
+        <!-- Markdown Document View -->
+        <article class="reader-body" id="readerContentArea">
+          <!-- Loaded dynamically via JavaScript -->
+        </article>
+      </div>
+    </section>
+
+    <!-- TAB 3: BOLA & RBAC SIMULATOR -->
+    <section id="pane-bola-matrix" class="tab-pane">
+      <div class="card" style="margin-bottom:1.5rem;">
+        <div class="card-header">
+          <span class="card-title">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            Interactive BOLA & RBAC Access Evaluator
+          </span>
+          <span style="font-size:0.8rem; color:var(--text-muted);">Simulasi eksekusi fungsi <code>can_access(con, user, task)</code> (Slide 56)</span>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap:1rem; align-items:end; margin-bottom:1.5rem;">
+          <div>
+            <label class="section-subtitle">1. Pilih Pengguna Pemanggil (Caller):</label>
+            <select id="simCaller" class="form-select">
+              <option value="alice">Alice (ID: u1, Role: Member, Tim: A)</option>
+              <option value="bob">Bob (ID: u2, Role: Member, Tim: B)</option>
+              <option value="manager">Manager (ID: u3, Role: Manager, Tim: A)</option>
+              <option value="admin">Admin (ID: u4, Role: Admin, Tim: ALL)</option>
+            </select>
+          </div>
+          <div>
+            <label class="section-subtitle">2. Pilih Resource Target:</label>
+            <select id="simTargetTask" class="form-select">
+              <option value="task_alice">Task Alice (Owner: u1 [Alice], Tim: A)</option>
+              <option value="task_bob">Task Bob (Owner: u2 [Bob], Tim: B)</option>
+            </select>
+          </div>
+          <div>
+            <button class="btn-send" style="height:40px;" onclick="runBolaSimulation()">
+              Evaluasi Hak Akses
+            </button>
+          </div>
+        </div>
+
+        <!-- Simulation Output Box -->
+        <div id="simResultBox" style="background:rgba(0,0,0,0.4); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:1.25rem;">
+          <h4 style="font-size:0.9rem; color:#93c5fd; margin-bottom:0.5rem;">Alur Keputusan Logika Server:</h4>
+          <div id="simLogSteps" style="font-family:var(--font-mono); font-size:0.82rem; line-height:1.7; color:var(--text-muted);">
+            Klik tombol "Evaluasi Hak Akses" di atas untuk menjalankan simulasi...
+          </div>
+        </div>
+      </div>
+
+      <!-- Static RBAC Table Matrix -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Matriks Otorisasi TaskHub (Slide 49)</span>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Aksi / Operasi</th>
+              <th>Alice (Member A)</th>
+              <th>Bob (Member B)</th>
+              <th>Manager (Manager A)</th>
+              <th>Admin (ALL)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Baca / Ubah Task Milik Alice</strong></td>
+              <td><span style="color:#34d399; font-weight:700;">ALLOW (Owner)</span></td>
+              <td><span style="color:#fb7185; font-weight:700;">DENY 403 (BOLA)</span></td>
+              <td><span style="color:#34d399; font-weight:700;">ALLOW (Same Team)</span></td>
+              <td><span style="color:#34d399; font-weight:700;">ALLOW (Admin)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Baca / Ubah Task Milik Bob</strong></td>
+              <td><span style="color:#fb7185; font-weight:700;">DENY 403 (BOLA)</span></td>
+              <td><span style="color:#34d399; font-weight:700;">ALLOW (Owner)</span></td>
+              <td><span style="color:#fb7185; font-weight:700;">DENY 403 (Diff Team)</span></td>
+              <td><span style="color:#34d399; font-weight:700;">ALLOW (Admin)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Buat Task Baru Sendiri</strong></td>
+              <td><span style="color:#34d399; font-weight:700;">ALLOW</span></td>
+              <td><span style="color:#34d399; font-weight:700;">ALLOW</span></td>
+              <td><span style="color:#34d399; font-weight:700;">ALLOW</span></td>
+              <td><span style="color:#34d399; font-weight:700;">ALLOW</span></td>
+            </tr>
+            <tr>
+              <td><strong>Kirim owner_id di Request Body</strong></td>
+              <td><span style="color:#fb7185; font-weight:700;">REJECT 422</span></td>
+              <td><span style="color:#fb7185; font-weight:700;">REJECT 422</span></td>
+              <td><span style="color:#fb7185; font-weight:700;">REJECT 422</span></td>
+              <td><span style="color:#fb7185; font-weight:700;">REJECT 422</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 4: OPTIMISTIC CONCURRENCY SIMULATOR -->
+    <section id="pane-concurrency" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Optimistic Concurrency Collision Simulator (Slide 30)
+          </span>
+          <span style="font-size:0.8rem; color:var(--text-muted);">Mencegah fenomena Lost Update melalui versioning</span>
+        </div>
+
+        <p style="margin-bottom:1.25rem; font-size:0.88rem; color:var(--text-muted);">
+          Bayangkan dua browser tab atau dua klien (Klien A dan Klien B) sama-sama membaca task saat versi bernilai <code>1</code>. Keduanya berniat mengubah status task. Siapa yang berhasil, dan apa yang terjadi pada yang terlambat?
+        </p>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
+          
+          <!-- Client A Box -->
+          <div class="card" style="background:rgba(10, 20, 40, 0.7); border-color:rgba(59, 130, 246, 0.3);">
+            <h3 style="color:#60a5fa; font-size:0.95rem; margin-bottom:0.5rem;">🖥️ Klien A (User Alice - Tab 1)</h3>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.75rem;">Membaca task saat <strong>versi = 1</strong>. Ingin mengubah status ke <code>done</code>.</p>
+            <button class="btn-send" style="width:100%; justify-content:center;" onclick="simUpdateClientA()">
+              Kirim PATCH (status: "done", version: 1)
+            </button>
+            <div id="simResultA" style="margin-top:0.75rem; font-family:var(--font-mono); font-size:0.78rem; color:var(--text-dim); min-height:40px;">
+              Status: Menunggu eksekusi...
+            </div>
+          </div>
+
+          <!-- Client B Box -->
+          <div class="card" style="background:rgba(30, 15, 30, 0.7); border-color:rgba(244, 63, 94, 0.3);">
+            <h3 style="color:#fb7185; font-size:0.95rem; margin-bottom:0.5rem;">🖥️ Klien B (User Alice - Tab 2)</h3>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.75rem;">Juga membaca task saat <strong>versi = 1</strong>. Terlambat mengirim request perubahan.</p>
+            <button class="btn-send" style="width:100%; justify-content:center; background:linear-gradient(135deg, #e11d48, #f43f5e);" onclick="simUpdateClientB()">
+              Kirim PATCH (status: "open", version: 1)
+            </button>
+            <div id="simResultB" style="margin-top:0.75rem; font-family:var(--font-mono); font-size:0.78rem; color:var(--text-dim); min-height:40px;">
+              Status: Menunggu eksekusi...
+            </div>
+          </div>
+
+        </div>
+
+        <div style="background:rgba(15, 23, 42, 0.6); padding:1rem; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+          <h4 style="font-size:0.85rem; color:#93c5fd; margin-bottom:0.35rem;">Penjelasan Arsitektur:</h4>
+          <p style="font-size:0.82rem; color:var(--text-muted); margin:0;">
+            Klien A berhasil mengupdate database karena versi masih <code>1</code>. Query menaikkan versi menjadi <code>2</code>. Ketika Klien B mengirim request dengan versi <code>1</code>, kondisi <code>WHERE version = 1</code> tidak lagi cocok. Server mendeteksi <code>cur.rowcount == 0</code> dan mengembalikan <strong>409 VERSION_CONFLICT</strong>. Klien B diwajibkan membaca ulang state terbaru sebelum memutuskan perubahan berikutnya.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: DATABASE INSPECTOR -->
+    <section id="pane-db-inspector" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7M4 7c0-2 1.5-3 3.5-3h9c2 0 3.5 1 3.5 3M4 7c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3m0 5c0 2-1.5 3-3.5 3h-9C5.5 15 4 14 4 12"/></svg>
+            Live Database Inspector (taskhub.db)
+          </span>
+          <button class="btn-icon-text" onclick="refreshDbView()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Refresh Tables
+          </button>
+        </div>
+
+        <!-- Table Tasks -->
+        <div class="db-table-wrapper">
+          <div class="section-subtitle">Tabel: tasks (Resource Utama)</div>
+          <table class="data-table" id="dbTasksTable">
+            <thead>
+              <tr><th>id</th><th>title</th><th>status</th><th>owner_id</th><th>version</th></tr>
+            </thead>
+            <tbody><tr><td colspan="5">Memuat data...</td></tr></tbody>
+          </table>
+        </div>
+
+        <!-- Table Tokens -->
+        <div class="db-table-wrapper">
+          <div class="section-subtitle">Tabel: tokens (Opaque Bearer Token SHA-256)</div>
+          <table class="data-table" id="dbTokensTable">
+            <thead>
+              <tr><th>hash (SHA-256)</th><th>user_id</th><th>expires (Epoch)</th><th>Sisa Waktu (TTL)</th></tr>
+            </thead>
+            <tbody><tr><td colspan="4">Memuat data...</td></tr></tbody>
+          </table>
+        </div>
+
+        <!-- Table Users -->
+        <div class="db-table-wrapper">
+          <div class="section-subtitle">Tabel: users (Akun Sintetis Lab - Slide 52)</div>
+          <table class="data-table" id="dbUsersTable">
+            <thead>
+              <tr><th>id</th><th>username</th><th>role</th><th>team</th><th>salt</th><th>hash (scrypt)</th></tr>
+            </thead>
+            <tbody><tr><td colspan="6">Memuat data...</td></tr></tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 6: OPENAPI SPEC VIEW -->
+    <section id="pane-openapi-view" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            OpenAPI 3.1.1 Specification (openapi.yaml)
+          </span>
+          <a href="/openapi.yaml" target="_blank" class="btn-icon-text" style="text-decoration:none;">
+            Buka File Raw (.yaml)
+          </a>
+        </div>
+        <pre id="openapiYamlViewer" class="json-viewer" style="max-height: 650px;">Memuat spesifikasi openapi.yaml...</pre>
+      </div>
+    </section>
+
+    <!-- TAB 7: QUIZ & EVALUASI -->
+    <section id="pane-quiz" class="tab-pane">
+      <div class="card" style="margin-bottom:1.5rem;">
+        <div class="card-header">
+          <span class="card-title">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            Uji Pemahaman: 7 Poin Kunci Hari 1 (Slide 67)
+          </span>
+          <span id="quizScoreBadge" style="font-size:0.85rem; font-weight:700; color:#34d399;">Skor: 0 / 7</span>
+        </div>
+        <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:1.5rem;">
+          Jawab pertanyaan evaluasi mandiri berikut untuk memvalidasi pemahaman Anda mengenai desain REST, OpenAPI, otentikasi, dan kontrol akses.
+        </p>
+
+        <!-- Question 1 -->
+        <div class="quiz-question-card" data-qid="1">
+          <h4>1. Apakah arsitektur REST Stateless melarang penggunaan database persisten?</h4>
+          <div class="quiz-options">
+            <label class="quiz-option-label">
+              <input type="radio" name="q1" value="A" onchange="checkAnswer(1, 'A', 'B')">
+              A. Ya, karena server tidak boleh menyimpan state apa pun sama sekali.
+            </label>
+            <label class="quiz-option-label">
+              <input type="radio" name="q1" value="B" onchange="checkAnswer(1, 'B', 'B')">
+              B. Tidak, stateless hanya melarang percakapan sesi (conversation session) di memori server; database persisten tetap menyimpan data bisnis.
+            </label>
+            <label class="quiz-option-label">
+              <input type="radio" name="q1" value="C" onchange="checkAnswer(1, 'C', 'B')">
+              C. Ya, kecuali jika menggunakan in-memory Redis cache.
+            </label>
+          </div>
+          <div class="quiz-feedback" id="feedback-1"></div>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="quiz-question-card" data-qid="2">
+          <h4>2. Apa perbedaan esensial antara kode status HTTP 401 dan 403?</h4>
+          <div class="quiz-options">
+            <label class="quiz-option-label">
+              <input type="radio" name="q2" value="A" onchange="checkAnswer(2, 'A', 'C')">
+              A. 401 dan 403 adalah sinonim dan dapat ditukar-tukar bebas.
+            </label>
+            <label class="quiz-option-label">
+              <input type="radio" name="q2" value="B" onchange="checkAnswer(2, 'B', 'C')">
+              B. 401 untuk error database, sedangkan 403 untuk error format JSON.
+            </label>
+            <label class="quiz-option-label">
+              <input type="radio" name="q2" value="C" onchange="checkAnswer(2, 'C', 'C')">
+              C. 401 menguji otentikasi (siapa Anda/token tidak valid), sedangkan 403 menguji otorisasi (identitas sah namun dilarang mengakses objek tersebut).
+            </label>
+          </div>
+          <div class="quiz-feedback" id="feedback-2"></div>
+        </div>
+
+        <!-- Question 3 -->
+        <div class="quiz-question-card" data-qid="3">
+          <h4>3. Jika seorang penyerang memiliki JWT yang valid dan belum expired, apakah otomatis berhak mengakses seluruh data di sistem?</h4>
+          <div class="quiz-options">
+            <label class="quiz-option-label">
+              <input type="radio" name="q3" value="A" onchange="checkAnswer(3, 'A', 'B')">
+              A. Ya, karena signature JWT sudah terverifikasi secara kriptografis.
+            </label>
+            <label class="quiz-option-label">
+              <input type="radio" name="q3" value="B" onchange="checkAnswer(3, 'B', 'B')">
+              B. Tidak, token valid hanya membuktikan identitas, server tetap wajib memvalidasi otorisasi level objek (BOLA) di setiap request.
+            </label>
+          </div>
+          <div class="quiz-feedback" id="feedback-3"></div>
+        </div>
+
+        <!-- Question 4 -->
+        <div class="quiz-question-card" data-qid="4">
+          <h4>4. Mengapa penggunaan UUID acak BUKAN merupakan pengganti otorisasi objek?</h4>
+          <div class="quiz-options">
+            <label class="quiz-option-label">
+              <input type="radio" name="q4" value="A" onchange="checkAnswer(4, 'A', 'A')">
+              A. UUID hanya mencegah tebakan berurutan; jika ID bocor lewat log atau URL sharing, siapa pun dapat mengaksesnya jika tidak ada cek kepemilikan di server.
+            </label>
+            <label class="quiz-option-label">
+              <input type="radio" name="q4" value="B" onchange="checkAnswer(4, 'B', 'A')">
+              B. Karena UUID memakan memori database terlalu besar.
+            </label>
+          </div>
+          <div class="quiz-feedback" id="feedback-4"></div>
+        </div>
+
+        <!-- Question 5 -->
+        <div class="quiz-question-card" data-qid="5">
+          <h4>5. Apakah Basic Authentication yang menggunakan Base64 tergolong enkripsi data?</h4>
+          <div class="quiz-options">
+            <label class="quiz-option-label">
+              <input type="radio" name="q5" value="A" onchange="checkAnswer(5, 'A', 'B')">
+              A. Ya, karena tidak dapat dibaca oleh mata manusia biasa.
+            </label>
+            <label class="quiz-option-label">
+              <input type="radio" name="q5" value="B" onchange="checkAnswer(5, 'B', 'B')">
+              B. Tidak, Base64 hanyalah algoritma representasi teks (encoding) dua arah tanpa kunci rahasia, dan wajib dilindungi TLS/HTTPS.
+            </label>
+          </div>
+          <div class="quiz-feedback" id="feedback-5"></div>
+        </div>
+
+        <!-- Question 6 -->
+        <div class="quiz-question-card" data-qid="6">
+          <h4>6. Di mana sebaiknya field owner_id ditetapkan saat pembuatan task baru?</h4>
+          <div class="quiz-options">
+            <label class="quiz-option-label">
+              <input type="radio" name="q6" value="A" onchange="checkAnswer(6, 'A', 'B')">
+              A. Dikirim oleh frontend klien di dalam JSON body request.
+            </label>
+            <label class="quiz-option-label">
+              <input type="radio" name="q6" value="B" onchange="checkAnswer(6, 'B', 'B')">
+              B. Ditentukan secara mutlak oleh server dari token otentikasi pengguna yang sedang aktif (mencegah Mass Assignment).
+            </label>
+          </div>
+          <div class="quiz-feedback" id="feedback-6"></div>
+        </div>
+
+        <!-- Question 7 -->
+        <div class="quiz-question-card" data-qid="7">
+          <h4>7. Apa kode status HTTP yang tepat ketika terjadi tabrakan update konkurensi (Optimistic Lock Collision)?</h4>
+          <div class="quiz-options">
+            <label class="quiz-option-label">
+              <input type="radio" name="q7" value="A" onchange="checkAnswer(7, 'A', 'C')">
+              A. 200 OK dengan status error di body.
+            </label>
+            <label class="quiz-option-label">
+              <input type="radio" name="q7" value="B" onchange="checkAnswer(7, 'B', 'C')">
+              B. 500 Internal Server Error.
+            </label>
+            <label class="quiz-option-label">
+              <input type="radio" name="q7" value="C" onchange="checkAnswer(7, 'C', 'C')">
+              C. 409 Conflict (VERSION_CONFLICT).
+            </label>
+          </div>
+          <div class="quiz-feedback" id="feedback-7"></div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/playground/app.js"></script>
+</body>
+</html>

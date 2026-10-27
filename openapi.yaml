@@ -1,0 +1,455 @@
+openapi: 3.1.1
+info:
+  title: TaskHub Local Lab
+  version: 1.0.0
+  description: >-
+    TaskHub API Training - Hari 1: Desain REST, OpenAPI, dan Autentikasi.
+    Meliputi kontrak resource, semantik HTTP, kontrol akses berbasis objek (BOLA prevention),
+    optimistic concurrency control (versioning), dan otentikasi bearer token opaque.
+servers:
+  - url: http://127.0.0.1:8000
+    description: Localhost Lab Server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      summary: Health Check Liveness
+      description: Endpoint publik untuk memeriksa apakah server lab berjalan aktif.
+      security: []
+      responses:
+        '200':
+          description: Server sehat dan siap menerima request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: pass
+                  time:
+                    type: integer
+                    example: 1729900000
+
+  /api/v1/auth/token:
+    post:
+      summary: 'Login lab: opaque bearer, bukan OAuth server'
+      description: >-
+        Verifikasi username dan password demo menggunakan scrypt adaptif.
+        Menghasilkan token opaque 32-byte berentropi tinggi yang disimpan hash SHA-256 nya
+        di database dengan masa berlaku 900 detik (15 menit).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login berhasil, token diterbitkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Request tidak dapat di-parse atau header Content-Length tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Kredensial tidak valid (username tidak ditemukan atau password salah)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          description: Ukuran payload melebihi batas 64KB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '415':
+          description: Media Type bukan application/json
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Format JSON valid namun skema request salah
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/tasks:
+    get:
+      summary: List tasks dengan scope otorisasi & paginasi
+      description: >-
+        Mengambil daftar task yang berhak dilihat pengguna pemanggil (BOLA defense).
+        Member hanya melihat task miliknya, Manager melihat task timnya, Admin melihat semua task.
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: Nomor halaman (minimal 1, default 1)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          description: Jumlah item per halaman (1 s.d 100, default 20)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: status
+          in: query
+          required: false
+          description: Filter status task (open atau done)
+          schema:
+            type: string
+            enum: [open, done]
+      responses:
+        '200':
+          description: Daftar task berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                  meta:
+                    type: object
+                    required: [page, pageSize, totalItems, totalPages]
+                    properties:
+                      page:
+                        type: integer
+                        example: 1
+                      pageSize:
+                        type: integer
+                        example: 20
+                      totalItems:
+                        type: integer
+                        example: 5
+                      totalPages:
+                        type: integer
+                        example: 1
+        '401':
+          description: Token tidak ada atau sudah kedaluwarsa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Parameter query tidak memenuhi batasan skema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Membuat task baru
+      description: >-
+        Membuat resource task baru. Server menentukan owner_id dari token otentikasi.
+        Jika client mencoba mengirim owner_id, role, atau field internal lainnya, server
+        akan menolak dengan 422 Unprocessable Entity (Mass Assignment defense).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTask'
+      responses:
+        '201':
+          description: Task berhasil dibuat
+          headers:
+            Location:
+              description: URI resource task yang baru dibuat
+              schema:
+                type: string
+                example: /api/v1/tasks/tsk_abc123
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Task'
+        '400':
+          description: Malformed JSON
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Token tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          description: Payload melebihi 64KB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '415':
+          description: Content-Type tidak didukung
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validasi payload gagal (misal title < 3 char atau membawa field internal)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/tasks/{taskId}:
+    parameters:
+      - name: taskId
+        in: path
+        required: true
+        description: Identifier unik task
+        schema:
+          type: string
+          example: tsk_alice_1
+
+    get:
+      summary: Mendapatkan detail task
+      description: >-
+        Membaca task berdasarkan ID. Server memeriksa izin objek terlebih dahulu.
+        Jika task bukan milik user (dan user bukan manager satu tim atau admin),
+        server mengembalikan 403 Forbidden.
+      responses:
+        '200':
+          description: Detail task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Task'
+        '401':
+          description: Token tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Akses ditolak (BOLA protection)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Task tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      summary: Update status task dengan Optimistic Concurrency Control
+      description: >-
+        Melakukan update parsial status task. Memerlukan nomor versi saat ini (optimistic lock).
+        Jika versi tidak cocok dengan database, server mengembalikan 409 VERSION_CONFLICT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchTask'
+      responses:
+        '200':
+          description: Task berhasil diperbarui, version bertambah 1
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Task'
+        '401':
+          description: Token tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Tidak memiliki izin mengubah task ini
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Task tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Konflik versi (Optimistic Lock Collision)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Payload salah (hanya boleh status dan version)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Menghapus task
+      description: Menghapus task tertentu setelah lolos verifikasi izin objek.
+      responses:
+        '204':
+          description: Berhasil dihapus tanpa response body
+        '401':
+          description: Token tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Tidak memiliki hak menghapus task ini
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Task tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'Opaque bearer token (SHA-256 hash disimpan di DB, TTL 900 detik)'
+
+  schemas:
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          example: alice
+        password:
+          type: string
+          example: Lab-Only-123!
+
+    TokenResponse:
+      type: object
+      required: [token, token_type, expires_in, user]
+      properties:
+        token:
+          type: string
+          description: Opaque token acak berentropi tinggi
+          example: s8F9j2K_e3W7qL1xZ0vB4nC8mP5tY6uI9oE2wQ
+        token_type:
+          type: string
+          example: Bearer
+        expires_in:
+          type: integer
+          description: Durasi validitas token dalam detik
+          example: 900
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              example: u1
+            username:
+              type: string
+              example: alice
+            role:
+              type: string
+              example: member
+            team:
+              type: string
+              example: A
+
+    Task:
+      type: object
+      required: [id, title, status, owner_id, version]
+      properties:
+        id:
+          type: string
+          example: tsk_demo_101
+        title:
+          type: string
+          example: Implementasi Kontrak REST API
+        status:
+          type: string
+          enum: [open, done]
+          example: open
+        owner_id:
+          type: string
+          example: u1
+        version:
+          type: integer
+          example: 1
+
+    CreateTask:
+      type: object
+      additionalProperties: false
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 150
+          example: Review rancangan API
+
+    PatchTask:
+      type: object
+      additionalProperties: false
+      required: [status, version]
+      properties:
+        status:
+          type: string
+          enum: [open, done]
+          example: done
+        version:
+          type: integer
+          description: Nomor versi yang diketahui client saat membaca state
+          example: 1
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, requestId]
+          properties:
+            code:
+              type: string
+              example: VERSION_CONFLICT
+            requestId:
+              type: string
+              example: req_7f8a9b
+            message:
+              type: string
+              example: Task has been modified by another request. Please reload.
