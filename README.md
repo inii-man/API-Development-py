@@ -45,7 +45,105 @@ Repositori ini berisi implementasi lengkap bahan ajar dan interactive playground
 
 ---
 
-## ⚡ Panduan Menjalankan
+## 🎯 Prasyarat Belajar (Prerequisites)
+
+Sebelum memulai lab dan materi pelatihan ini, peserta diharapkan mempersiapkan:
+1. **Konseptual**: Memahami dasar protokol HTTP (*request/response, method, status code*), format data JSON, serta dasar database relasional & query SQL (`SELECT`, `INSERT`, `UPDATE`, `DELETE`).
+2. **Tooling**: Terbiasa menggunakan Terminal (CLI dasar & *environment variable*) dan HTTP client (`curl`, Postman, atau Insomnia).
+3. **Lingkungan**: Python 3.9+ (dengan modul bawaan `sqlite3` dan `hashlib.scrypt`) serta Web Browser modern (Chrome/Safari/Firefox/Edge).
+4. **Bebas Dependensi (Zero-Dependency)**: Tidak memerlukan instalasi database server eksternal dan tidak memerlukan `pip install` library tambahan.
+
+---
+
+## 📦 Panduan Instalasi & Setup Langkah demi Langkah
+
+Repositori ini dirancang **Zero-Dependency (100% Python Standard Library)**, sehingga proses setup sangat cepat tanpa perlu melakukan `pip install` library eksternal atau konfigurasi database server terpisah.
+
+### Langkah 1: Kloning atau Unduh Repositori
+Buka terminal dan clone repositori ini:
+```bash
+git clone https://github.com/inii-man/API-Development-py.git
+cd API-Development-py
+```
+*(Atau masuk ke direktori tempat Anda mengekstrak berkas ZIP proyek ini).*
+
+---
+
+### Langkah 2: Verifikasi Versi Python
+Pastikan Python versi **3.9 atau yang lebih baru** telah terpasang:
+```bash
+# macOS / Linux
+python3 --version
+
+# Windows
+python --version
+```
+> **Catatan Windows**: Jika perintah `python3` tidak dikenali, gunakan `python`.
+
+---
+
+### Langkah 3: Siapkan Virtual Environment (Opsional tapi Direkomendasikan)
+Meskipun lab ini menggunakan pustaka standar, membuat virtual environment merupakan *best practice* untuk mengisolasi lingkungan kerja:
+
+```bash
+# macOS / Linux
+python3 -m venv venv
+source venv/bin/activate
+
+# Windows (PowerShell)
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+
+# Windows (Command Prompt / CMD)
+python -m venv venv
+.\venv\Scripts\activate.bat
+```
+
+---
+
+### Langkah 4: Verifikasi Instalasi dengan Menjalankan Automated Test
+Jalankan pengujian otomatis bawaan untuk memastikan interpreter Python Anda mendukung modul `sqlite3` dan algoritma `scrypt`:
+```bash
+# macOS / Linux
+python3 -m unittest -v test_lab test_http
+
+# Windows
+python -m unittest -v test_lab test_http
+```
+Jika melihat output **`Ran 10 tests ... OK`**, instalasi Anda 100% valid dan siap digunakan!
+
+---
+
+### Langkah 5: Jalankan Server API & Interactive Playground
+Nyalakan server lab:
+```bash
+# macOS / Linux
+python3 app.py
+
+# Windows
+python app.py
+```
+Saat server menyala, database `taskhub.db` akan dibuat dan di-seed secara otomatis. Buka browser dan navigasikan ke:
+👉 **[http://127.0.0.1:8000/](http://127.0.0.1:8000/)**
+
+---
+
+### ⚙️ Menjalankan pada Port Kustom (Jika Port 8000 Terpakai)
+Jika port 8000 sedang digunakan oleh aplikasi lain, gunakan *environment variable* `PORT`:
+```bash
+# macOS / Linux
+PORT=8080 python3 app.py
+
+# Windows (PowerShell)
+$env:PORT="8080"; python app.py
+
+# Windows (CMD)
+set PORT=8080 && python app.py
+```
+
+---
+
+## ⚡ Panduan Cepat Menjalankan
 
 ### 1. Menjalankan Seluruh Pengujian Otomatis
 ```bash

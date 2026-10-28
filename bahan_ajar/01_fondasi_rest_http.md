@@ -3,6 +3,17 @@
 
 ---
 
+## 🎯 Prasyarat Sebelum Memulai Modul Ini
+
+Sebelum masuk ke pembahasan fondasi REST dan semantik HTTP, peserta diharapkan telah memiliki pemahaman dasar mengenai:
+1. **Model Komunikasi Web**: Memahami alur request dari klien ke server melalui protokol HTTP.
+2. **Format Data JSON**: Mampu membaca dan menyusun objek key-value serta array data.
+3. **Konsep Basis Data**: Mengenal operasi CRUD dasar (`SELECT`, `INSERT`, `UPDATE`, `DELETE`) dan konsep Primary Key.
+4. **Command Line (CLI)**: Mampu membuka terminal untuk menjalankan script `python3 app.py` atau mengirim request dasar dengan `curl`.
+5. **Lingkungan Kerja**: Python 3.9+ telah terpasang di sistem operasi (Windows, macOS, atau Linux).
+
+---
+
 ## 1. API Sebagai Kontrak Antarperangkat Lunak
 
 API (Application Programming Interface) pada dasarnya adalah **kontrak formal** yang mengikat dua sistem independen (klien dan server) untuk saling berkomunikasi tanpa perlu mengetahui implementasi internal masing-masing.

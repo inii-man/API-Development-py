@@ -6,6 +6,37 @@ Modul ini disusun secara terstruktur dari fondasi arsitektur protokol hingga imp
 
 ---
 
+## 🎯 Prasyarat Belajar (Prerequisites)
+
+Sebelum mempelajari modul Hari 1 ini, peserta disarankan telah memahami konsep dasar dan mempersiapkan hal-hal berikut:
+
+### 1. 🧠 Pengetahuan Konseptual Dasar
+- **Protokol HTTP & Web**: Memahami alur kerja *Client-Server*, struktur request/response, fungsi header, serta kode status HTTP dasar (misal: 200, 404, 500).
+- **Format Pertukaran Data JSON**: Memahami sintaks key-value, array, tipe data primitif (string, integer, boolean), dan objek bertingkat (*nested object*).
+- **Dasar Basis Data Relasional & SQL**: Memahami konsep tabel, kolom, Primary Key, Foreign Key, serta query CRUD dasar (`SELECT`, `INSERT`, `UPDATE`, `DELETE`).
+- **Dasar Logika Pemrograman**: Memahami variabel, fungsi/method, percabangan (`if/else`), dan penanganan eksepsi (`try/catch`). Prinsip arsitektur di pelatihan ini berlaku lintas bahasa pemrograman (Go, Java, Node.js, PHP, C#).
+
+### 2. 💻 Keterampilan Teknis & Tooling
+- **Penggunaan Terminal / Command Line (CLI)**:
+  - Menavigasi direktori (`cd`, `ls` / `dir`).
+  - Menjalankan perintah dan script Python (`python3 app.py`).
+  - Menetapkan variabel lingkungan / *environment variable* (`export KUNCI="nilai"` di macOS/Linux, atau `$env:KUNCI="nilai"` di Windows PowerShell).
+- **Penggunaan HTTP Client (Pilih Salah Satu)**:
+  - Perintah terminal `curl`, ATAU
+  - Aplikasi GUI seperti Postman atau Insomnia.
+
+### 3. 🛠️ Kesiapan Lingkungan & Perangkat
+- **Python 3.9+**:
+  - Pastikan Python telah terpasang dengan memeriksa `python3 --version`.
+  - Pustaka bawaan yang digunakan: `http.server`, `sqlite3`, dan `hashlib.scrypt`.
+- **Web Browser Modern**:
+  - Chrome, Firefox, Safari, atau Edge untuk menjalankan Web Playground dan visual reader.
+- **Bebas Dependensi Tambahan (Zero-Dependency)**:
+  - **Tidak** memerlukan instalasi database server eksternal (MySQL/PostgreSQL) karena sudah memakai SQLite bawaan.
+  - **Tidak** memerlukan `pip install` paket eksternal untuk menjalankan lab Hari 1.
+
+---
+
 ## 📚 Daftar Modul Pembelajaran
 
 1. [**Modul 1: Fondasi REST & Semantik HTTP**](file:///Users/sulaimansaleh/Documents/API-Development/bahan_ajar/01_fondasi_rest_http.md)
@@ -47,6 +78,12 @@ Modul ini disusun secara terstruktur dari fondasi arsitektur protokol hingga imp
    - 15 Matriks Uji Keamanan API TaskHub.
    - Latihan Kelompok: Memperluas kontrak dengan resource `projects` dan properti `due_date`.
    - Rubrik peer review dan kriteria kelulusan.
+
+7. [**Modul 7: Glosarium & Kamus Istilah API Development**](file:///Users/sulaimansaleh/Documents/API-Development/bahan_ajar/07_glosarium_kosakata.md)
+   - Penjelasan mendalam konsep dan protokol: PKCE, BOLA/IDOR, AuthN vs AuthZ, Opaque vs JWT.
+   - RBAC vs ABAC, Mass Assignment, Optimistic Concurrency Control (OCC).
+   - Scrypt vs Fast Hash, Salt & Rainbow Table, Timing Attack & Constant-Time comparison.
+   - Idempotency vs Safety, Stateless REST, CORS & Preflight, Prepared Statements, dan RFC 9700.
 
 ---
 

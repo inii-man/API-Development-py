@@ -538,6 +538,21 @@ const moduleDocs = {
       <h1>Modul 1: Fondasi REST & Semantik HTTP</h1>
       <p><em>API Development Training - Hari 1: Bagian 2</em></p>
       <hr style="border-color:var(--border-subtle); margin:1.5rem 0;">
+
+      <div style="background:rgba(59, 130, 246, 0.1); border:1px solid rgba(59, 130, 246, 0.3); border-radius:8px; padding:1.25rem; margin-bottom:1.5rem;">
+        <h3 style="color:#60a5fa; margin-top:0; font-size:1rem; display:flex; align-items:center; gap:0.5rem;">
+          🎯 Prasyarat Belajar (Prerequisites)
+        </h3>
+        <p style="font-size:0.85rem; color:#cbd5e1; margin-bottom:0.5rem;">Sebelum memulai materi ini, peserta disarankan telah memahami:</p>
+        <ul style="font-size:0.83rem; color:#cbd5e1; margin-bottom:0; padding-left:1.25rem;">
+          <li><strong>Dasar HTTP:</strong> Alur Client-Server, URL/URI, serta kode status dasar (200, 404, 500).</li>
+          <li><strong>Format JSON:</strong> Key-value, array, dan struktur objek bertingkat.</li>
+          <li><strong>Dasar SQL:</strong> Konsep tabel, primary key, dan query CRUD dasar (<code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>).</li>
+          <li><strong>Terminal & Tooling:</strong> Mampu menjalankan CLI dasar dan menggunakan <code>curl</code> atau Postman.</li>
+          <li><strong>Lingkungan:</strong> Python 3.9+ (Zero-dependency, tanpa perlu server database eksternal).</li>
+        </ul>
+      </div>
+
       <h2>1. API Sebagai Kontrak Antarperangkat Lunak</h2>
       <p>API adalah spesifikasi kontrak formal yang mengikat klien dan server tanpa perlu mengetahui kode internal masing-masing.</p>
       <blockquote>
@@ -632,10 +647,18 @@ const moduleDocs = {
       <h1>Modul 5: Panduan Praktik Lab & Langkah Hands-on</h1>
       <p><em>API Development Training - Hari 1: Bagian 6 & 7</em></p>
       <hr style="border-color:var(--border-subtle); margin:1.5rem 0;">
-      <h2>1. Menjalankan Server & Testing</h2>
+      <h2>1. Panduan Instalasi & Persiapan Lingkungan</h2>
+      <ol style="margin-left:1.5rem; margin-bottom:1rem;">
+        <li><strong>Clone repo:</strong> <code>git clone &lt;repo-url&gt; &amp;&amp; cd API-Development-py</code></li>
+        <li><strong>Cek Python:</strong> Pastikan versi 3.9+ (<code>python3 --version</code>).</li>
+        <li><strong>Virtual Environment (opsional):</strong> <code>python3 -m venv venv &amp;&amp; source venv/bin/activate</code></li>
+        <li><strong>Zero-Dependency:</strong> Tidak perlu <code>pip install</code> apa pun!</li>
+      </ol>
+      <h2>2. Menjalankan Server & Testing</h2>
       <pre><code>python3 -m unittest -v test_lab test_http
 python3 app.py</code></pre>
-      <h2>2. Akun Demo Lab-Only</h2>
+      <p>Akses Playground: <a href="http://127.0.0.1:8000/" target="_blank" style="color:#60a5fa;">http://127.0.0.1:8000/</a></p>
+      <h2>3. Akun Demo Lab-Only</h2>
       <ul>
         <li><code>alice</code> (Member Tim A) - Pass: <code>Lab-Only-123!</code></li>
         <li><code>bob</code> (Member Tim B) - Pass: <code>Lab-Only-123!</code></li>
@@ -660,6 +683,50 @@ python3 app.py</code></pre>
         <li>OAuth bisa memakai opaque token atau JWT.</li>
         <li>Dokumentasi lengkap mendefinisikan semua schema dan error relevan.</li>
       </ol>
+    `
+  },
+  '07': {
+    title: 'Modul 7: Glosarium & Kosakata API',
+    content: `
+      <h1>Modul 7: Glosarium & Kamus Istilah API Development</h1>
+      <p><em>Kamus Istilah Teknis, Konsep Keamanan, Arsitektur, dan Protokol API</em></p>
+      <hr style="border-color:var(--border-subtle); margin:1.5rem 0;">
+
+      <h2>1. PKCE (Proof Key for Code Exchange)</h2>
+      <p><strong>Pelafalan:</strong> <em>"pixy"</em> (RFC 7636 & RFC 9700).</p>
+      <p>Mekanisme keamanan pada OAuth 2.0 untuk melindungi <em>Public Client</em> (Single Page Apps seperti React/Vue dan Mobile App) dari pembajakan kode otorisasi (<em>Authorization Code Interception Attack</em>).</p>
+      <ul>
+        <li><strong>Masalah:</strong> Public client tidak dapat menyimpan <code>client_secret</code> secara aman karena kodenya dieksekusi di perangkat pengguna.</li>
+        <li><strong>Solusi:</strong> Klien membuat kunci dinamis rahasia sekali-pakai (<code>code_verifier</code>), menghitung hash SHA-256 (<code>code_challenge</code>), dan mengirimkannya saat login. Saat penukaran kode dengan token, server memverifikasi kecocokan verifier.</li>
+      </ul>
+
+      <h2>2. BOLA / IDOR (Broken Object Level Authorization)</h2>
+      <p>Kerentanan nomor <strong>#1 pada OWASP API Security Top 10</strong>. Terjadi ketika endpoint menerima ID objek (misal: <code>/tasks/{id}</code>) dan hanya memeriksa apakah token valid tanpa memeriksa apakah pemanggil berhak atas objek spesifik tersebut.</p>
+      <blockquote><strong>Ingat:</strong> UUID acak bukan pengganti otorisasi objek! Verifikasi kepemilikan/relasi wajib dijalankan di server.</blockquote>
+
+      <h2>3. AuthN vs AuthZ (Otentikasi vs Otorisasi)</h2>
+      <ul>
+        <li><strong>AuthN (Otentikasi):</strong> <em>"Siapa Anda?"</em> &rarr; Status <code>401 Unauthenticated</code> jika gagal.</li>
+        <li><strong>AuthZ (Otorisasi):</strong> <em>"Bolehkah Anda mengakses objek/aksi ini?"</em> &rarr; Status <code>403 Forbidden</code> jika ditolak.</li>
+      </ul>
+
+      <h2>4. Opaque Token vs JWT</h2>
+      <ul>
+        <li><strong>Opaque Token:</strong> Token acak 32-byte berentropi tinggi tanpa isi data. Hash disimpan di DB. Sangat mudah dan instan untuk dicabut/di-revoke. (Dipakai di Lab TaskHub).</li>
+        <li><strong>JWT (JSON Web Token):</strong> Self-contained token dengan payload JSON bertanda tangan kriptografis. Dapat diverifikasi tanpa query DB, namun payload base64url dapat dibaca siapa saja dan pencabutan token lebih rumit.</li>
+      </ul>
+
+      <h2>5. Optimistic Concurrency Control (OCC) & Lost Update</h2>
+      <p>Pola perlindungan tabrakan edit simultan menggunakan kolom <code>version</code>. Query update mewajibkan versi cocok: <code>WHERE id=? AND version=?</code>. Jika ada yang mendahului, server merespons <strong>409 Conflict (VERSION_CONFLICT)</strong>.</p>
+
+      <h2>6. Mass Assignment</h2>
+      <p>Celah keamanan di mana klien menyusupkan properti internal sensitif (misal: <code>owner_id</code>, <code>role</code>) di dalam JSON body. Mitigasi: Gunakan allowlist skema ketat (<code>additionalProperties: false</code>) dan tolak dengan <strong>422 Unprocessable Entity</strong>.</p>
+
+      <h2>7. Scrypt vs Fast Hash (SHA-256 / MD5)</h2>
+      <p>Password hashing wajib lambat dan membutuhkan RAM besar (<em>memory-hard</em>) seperti <strong>scrypt</strong> agar kebal terhadap serangan brute-force ribuan GPU/ASIC.</p>
+
+      <h2>8. Timing Attack & Constant-Time Comparison</h2>
+      <p>Teknik peretasan dengan mengukur selisih waktu respons nanodetik pembandingan string. Solusi: Gunakan <code>hmac.compare_digest</code> untuk membandingkan string dalam waktu konstan tanpa short-circuit.</p>
     `
   }
 };

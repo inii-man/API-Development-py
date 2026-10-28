@@ -20,16 +20,39 @@ Lab Hari 1 dirancang menggunakan **Python Standard Library** murni (`http.server
 
 ---
 
-## 2. Persiapan & Menjalankan Lab
+## 2. Panduan Instalasi & Persiapan Lingkungan
 
-### A. Menjalankan Unit & Integration Test
+### A. Clone / Unduh Repositori
+```bash
+git clone https://github.com/inii-man/API-Development-py.git
+cd API-Development-py
+```
+
+### B. Cek Versi Python
+Pastikan Python 3.9+ telah terpasang:
+```bash
+python3 --version   # macOS / Linux
+python --version    # Windows
+```
+
+### C. Membuat Virtual Environment (Opsional)
+```bash
+# macOS / Linux
+python3 -m venv venv && source venv/bin/activate
+
+# Windows (PowerShell)
+python -m venv venv; .\venv\Scripts\Activate.ps1
+```
+> **Catatan Zero-Dependency**: Repositori ini 100% menggunakan Python Standard Library, sehingga Anda **TIDAK perlu** menjalankan `pip install` apa pun!
+
+### D. Menjalankan Unit & Integration Test
 Pastikan semua kontrol logika dan keamanan lulus pengujian otomatis:
 ```bash
 python3 -m unittest -v test_lab test_http
 ```
 *Hasil yang diharapkan: 10 tests passed (OK).*
 
-### B. Menjalankan Server Lokal
+### E. Menjalankan Server Lokal & Playground
 ```bash
 python3 app.py
 ```
